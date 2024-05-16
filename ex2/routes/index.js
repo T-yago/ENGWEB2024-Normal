@@ -161,93 +161,27 @@ router.get('/contratos/delete/:id', function (req, res, next) {
 		)
 });
 
-router.get('/periodos', function (req, res) {
-	var d = new Date().toISOString().substring(0, 16);
-	axios.get('http://localhost:16000/periodos')
-		.then(resposta => {
-			res.render('periodos', { titulo: 'Lista de Periodos', lista: resposta.data, data: d });
-		})
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao recuperar os periodos.', data: d })
-		})
+router.get('/contratos/entidades/:nipc', function(req, res, next) {
+    var d = new Date().toISOString().substring(0, 16);
+    console.log("Ola!");
+    axios.get('http://localhost:16000/contratos?NIPC_entidade_comunicante=' + req.params.nipc)
+        .then(dados => {
+            if (dados.data && dados.data.length > 0) {
+                var sum = 0;
+                dados.data.forEach(contrato => {
+                    sum += contrato.precoContratual;
+                });
 
-});
-
-router.get('/periodos/:idPeriodo', function (req, res) {
-	var d = new Date().toISOString().substring(0, 16);
-	axios.get('http://localhost:16000/periodos/' + req.params.idPeriodo)
-		.then(resposta => {
-			res.render('periodo', { titulo: 'Detalhes do Periodo', periodo: resposta.data, data: d });
-		})
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao recuperar o periodo.', data: d })
-		})
-});
-
-router.get('/periodos/registo', function (req, res) {
-	var d = new Date().toISOString().substring(0, 16);
-	res.render('periodo_registo', { titulo: 'Registo de Periodo', data: d });
-}
-);
-
-router.post('/periodos/registo', function (req, res) {
-	axios.post('http://localhost:16000/periodos/', req.body)
-		.then(resposta => {
-			res.redirect('/periodos');
-		})
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao registar o periodo.', data: d })
-		})
-});
-
-router.get('/periodos/edit/:idPeriodo', function (req, res) {
-	var d = new Date().toISOString().substring(0, 16);
-	console.log(req.params.idPeriodo);
-	axios.get('http://localhost:16000/periodos/' + req.params.idPeriodo)
-		.then(resposta => {
-			res.render('periodo_editar', { titulo: 'Editar Periodo', periodo: resposta.data, data: d });
-		})
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao recuperar o periodo.', data: d })
-		})
-});
-
-router.post('/periodos/edit/:idPeriodo', function (req, res) {
-	var d = new Date().toISOString().substring(0, 16);
-	var p_id = '';
-
-	axios.get('http://localhost:16000/periodos')
-		.then(resposta => {
-			axios.put('http://localhost:16000/periodos/' + req.body._id, req.body)
-				.then(resposta => {
-					res.redirect('/periodos');
-				})
-				.catch(erro => {
-					res.render('error', { message: 'Erro ao editar o periodo.', data: d })
-				})
-		})
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao recuperar os periodos.', data: d })
-		})
-});
-
-router.get('/periodos/delete/:id', function (req, res, next) {
-	var d = new Date().toISOString().substring(0, 16);
-	axios.get('http://localhost:16000/periodos/' + req.params.id)
-		.then(resposta => {	
-			axios.delete('http://localhost:16000/periodos/' + req.params.id)
-				.then(resposta => {
-					res.redirect('/periodos');
-				})
-				.catch(erro => {
-					res.render('error', { message: 'Erro ao remover o periodo.', data: d })
-				})
-		}
-		)
-		.catch(erro => {
-			res.render('error', { message: 'Erro ao recuperar o periodo.', data: d })
-		}
-		)
+                res.render('entidade', { titulo: 'Página de Entidade', nipc: req.params.nipc,  contratos: dados.data, somatorio: sum });
+            } else {
+                // Handle case when no data is returned
+                res.render('error', { error: "No data found for the specified NIPC." });
+            }
+        })
+        .catch(erro => {
+            // Handle errors from Axios request
+            res.render('error', { error: erro });
+        });
 });
 
 
