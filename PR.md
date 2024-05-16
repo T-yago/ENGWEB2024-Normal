@@ -1,0 +1,180 @@
+# REAL TESTE
+
+## Normalização de dados
+
+Para a normalização de dados, criei um script que converte o csv em json, que facilitará o processo de servir rotas CRUD, e adicionei a variante de colocar o campo *"nAnuncio"* como um valor que começa em 1 e que é constantemente incrementado
+
+
+## Base de dados
+
+Para criar a base de dados e colocar os registos referentes aos contratos, rodei os comandos:
+
+`````
+docker exec -it mongoEW mongosh
+`````
+
+```
+docker cp contratos2024.json mongoEW:/tmp
+```
+
+Depois, para criar a base de dados e fazer a importação para a base de dados com o nome "contratos":
+
+````
+mongoimport --db <nome_db> --collection <nome_collection> --file /tmp/<nome_ficheiro> --jsonArray
+`````
+
+Para testar, usei:
+
+```
+show dbs
+````
+
+Vi que existia a bd "contratos", entrei:
+
+````
+use contratos
+````
+
+e depois procurei os registos:
+
+```
+db.contratos.find()
+````
+
+que devolveu o esperado.
+
+
+percebi depois que precisa de floats e por isso converti com o novo script e :
+
+`````
+db.contratos.drop()
+true
+`````
+
+e adicionei os novos registo da mesma forma que antes.
+
+
+
+*Nota*: Ainda após isso, apercebi-me que faria sentido substituir o campo "idcontrato" por "_id", pelo que procedi a tal alteração usando "CTRL + f" e fiz novamento o processo de adição à base de dados
+
+### 1.2
+
+#### 1. Quantos registos?
+
+`````
+db.contratos.countDocuments()
+36377
+`````
+#### 2. Quantos registos o tipo de procedimento com valor "Ajuste Direto Regime Geral?
+
+````
+db.contratos.countDocuments({ tipoprocedimento: "Ajuste Direto Regime Geral" })
+17067
+`````
+
+#### 3. Lista de entidades comunicante
+
+Obtida a partir de:
+
+````
+db.contratos.distinct("entidade_comunicante").sort()
+````
+
+#### 4. Distribuição de contratos por procedimento
+
+A partir do seguinte comando:
+
+````
+contratos> db.contratos.aggregate([ { $group: { _id: "$tipoprocedimento", count: { $sum: 1 } } }] )
+[
+  {
+    _id: 'Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05',
+    count: 1
+  },
+  { _id: 'Consulta Prévia Simplificada', count: 96 },
+  { _id: 'Ao abrigo de acordo-quadro (art.º 259.º)', count: 4678 },
+  { _id: 'Procedimento de negociação', count: 1 },
+  { _id: 'Concurso limitado por prévia qualificação', count: 53 },
+  { _id: 'Contratação excluída II', count: 144 },
+  { _id: 'Concurso público', count: 5300 },
+  { _id: 'Ao abrigo de acordo-quadro (art.º 258.º)', count: 995 },
+  { _id: 'Consulta Prévia', count: 8000 },
+  { _id: 'Ajuste Direto Regime Geral', count: 17067 },
+  { _id: 'Setores especiais – isenção parte II', count: 39 },
+  { _id: 'Concurso público simplificado', count: 3 }
+]
+````
+
+#### 5. 
+
+`````
+db.contratos.aggregate([ { $group: { _id: "$entidade_comunicante", totalPrecoContratual: { $sum: "$precoContratual" } } }] )
+[
+  { _id: 'Desmor, E. M., S. A.', totalPrecoContratual: 142549.68 },
+  { _id: 'Konkrets, Lda', totalPrecoContratual: 2095.17 },
+  {
+    _id: 'Junta de Agricultores do Regadio do Planalto de Vilar Chão e Parada',
+    totalPrecoContratual: 419100
+  },
+  {
+    _id: 'União das Freguesias de Ferradosa e Sendim da Serra',
+    totalPrecoContratual: 196954.31
+  },
+  {
+    _id: 'Nazaré Forma - Ensino, Formação e Certificação Profissional, L.da',
+    totalPrecoContratual: 114723.86
+  },
+  {
+    _id: 'ANI - Agência Nacional de Inovação, S. A.',
+    totalPrecoContratual: 1097414.76
+  },
+  {
+    _id: 'ATAHCA - Associação de Desenvolvimento das Terras Altas do Homem Cávado e Ave',
+    totalPrecoContratual: 12000
+  },
+  {
+    _id: 'Comunidade Intermunicipal do Douro',
+    totalPrecoContratual: 433033.26
+  },
+  {
+    _id: 'Agrupamento de Escolas D. João V, Amadora',
+    totalPrecoContratual: 10140
+  },
+  {
+    _id: 'Município de Vila Franca do Campo',
+    totalPrecoContratual: 4458681.07
+  },
+  {
+    _id: 'União das Freguesias de Beja (Salvador e Santa Maria da Feira)',
+    totalPrecoContratual: 82019.99
+  },
+  {
+    _id: 'Agrupamento de Escolas de Vila Nova de Paiva',
+    totalPrecoContratual: 47929.02
+  },
+  {
+    _id: 'União das Freguesias de Freixial e Juncal do Campo',
+    totalPrecoContratual: 9960
+  },
+  {
+    _id: 'Município de Vila Real',
+    totalPrecoContratual: 5834901.4399999995
+  },
+  {
+    _id: 'Direção-Geral do Consumidor',
+    totalPrecoContratual: 64018.840000000004
+  },
+  {
+    _id: 'Centro Protocolar de Formação Profissional para Jornalistas - CENJOR',
+    totalPrecoContratual: 124264.64
+  },
+  {
+    _id: 'União das Freguesias de Aljustrel e Rio de Moinhos',
+    totalPrecoContratual: 24236
+  },
+  { _id: 'IPO Porto FG, EPE', totalPrecoContratual: 7387012.65 },
+  { _id: 'Universidade de Lisboa', totalPrecoContratual: 735496.04 },
+  { _id: 'Município de Alcobaça', totalPrecoContratual: 2698503.55 }
+]
+````
+
